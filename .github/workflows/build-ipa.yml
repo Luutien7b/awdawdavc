@@ -1,0 +1,149 @@
+name: Build Safe Standalone Flydigi IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build-ios:
+    runs-on: macos-14
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Auto-Prepare Project Structure (Supports Direct ZIP or Root Swift Upload)
+        run: |
+          if [ -f "Flydigi_PlayTogether_iOS_IPA_Project.zip" ]; then
+            echo "Found uploaded ZIP archive, extracting automatically..."
+            unzip -o Flydigi_PlayTogether_iOS_IPA_Project.zip
+          fi
+
+          mkdir -p Sources/App
+
+          if [ -f "FlydigiPlayTogetherMapper.swift" ] && [ ! -f "Sources/App/FlydigiPlayTogetherMapper.swift" ]; then
+            cp FlydigiPlayTogetherMapper.swift Sources/App/FlydigiPlayTogetherMapper.swift
+          fi
+
+          if [ ! -f "Sources/App/Info.plist" ]; then
+            cat << 'PLIST' > Sources/App/Info.plist
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleDevelopmentRegion</key>
+              <string>vi</string>
+              <key>CFBundleDisplayName</key>
+              <string>Flydigi PT Safe</string>
+              <key>CFBundleExecutable</key>
+              <string>$(EXECUTABLE_NAME)</string>
+              <key>CFBundleIdentifier</key>
+              <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+              <key>CFBundleInfoDictionaryVersion</key>
+              <string>6.0</string>
+              <key>CFBundleName</key>
+              <string>$(PRODUCT_NAME)</string>
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
+              <key>CFBundleShortVersionString</key>
+              <string>3.0.0</string>
+              <key>CFBundleVersion</key>
+              <string>3</string>
+              <key>NSBluetoothAlwaysUsageDescription</key>
+              <string>Ket noi tay cam Flydigi Apex 5 va Direwolf.</string>
+              <key>NSBluetoothPeripheralUsageDescription</key>
+              <string>Duy tri cau noi cam ung chay nen.</string>
+              <key>NSPhotoLibraryUsageDescription</key>
+              <string>Tai anh chup man hinh Play Together VNG de can chinh nut.</string>
+              <key>UIBackgroundModes</key>
+              <array>
+                  <string>audio</string>
+                  <string>bluetooth-central</string>
+                  <string>bluetooth-peripheral</string>
+                  <string>external-accessory</string>
+              </array>
+              <key>GCSupportedGameControllers</key>
+              <array>
+                  <dict>
+                      <key>ProfileName</key>
+                      <string>ExtendedGamepad</string>
+                  </dict>
+              </array>
+              <key>GCSupportsControllerUserInteraction</key>
+              <true/>
+              <key>GCShouldMonitorBackgroundEvents</key>
+              <true/>
+              <key>LSRequiresIPhoneOS</key>
+              <true/>
+              <key>UIApplicationSceneManifest</key>
+              <dict>
+                  <key>UIApplicationSupportsMultipleScenes</key>
+                  <false/>
+              </dict>
+              <key>UILaunchScreen</key>
+              <dict/>
+              <key>UISupportedInterfaceOrientations</key>
+              <array>
+                  <string>UIInterfaceOrientationLandscapeLeft</string>
+                  <string>UIInterfaceOrientationLandscapeRight</string>
+              </array>
+          </dict>
+          </plist>
+          PLIST
+          fi
+
+          if [ ! -f "project.yml" ]; then
+            cat << 'PROJ' > project.yml
+          name: FlydigiPlayTogetherMapper
+          options:
+            bundleIdPrefix: com.flydigi.ptmapper
+            deploymentTarget:
+              iOS: "15.0"
+          targets:
+            FlydigiPlayTogetherMapper:
+              type: application
+              platform: iOS
+              sources:
+                - path: Sources/App
+              info:
+                path: Sources/App/Info.plist
+              settings:
+                base:
+                  PRODUCT_BUNDLE_IDENTIFIER: com.flydigi.ptmapper.safe
+                  INFOPLIST_FILE: Sources/App/Info.plist
+                  CODE_SIGN_IDENTITY: ""
+                  CODE_SIGNING_REQUIRED: NO
+                  CODE_SIGNING_ALLOWED: NO
+                  ENABLE_BITCODE: NO
+              dependencies:
+                - sdk: GameController.framework
+                - sdk: CoreBluetooth.framework
+                - sdk: AVFoundation.framework
+                - sdk: AVKit.framework
+                - sdk: SwiftUI.framework
+                - sdk: UIKit.framework
+          PROJ
+          fi
+
+      - name: Generate Xcode Project with XcodeGen
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: 1
+        run: |
+          if ! command -v xcodegen &> /dev/null; then
+            brew install xcodegen
+          fi
+          xcodegen generate
+
+      - name: Build Unsigned Standalone Safe IPA
+        run: |
+          xcodebuild clean build             -project FlydigiPlayTogetherMapper.xcodeproj             -scheme FlydigiPlayTogetherMapper             -configuration Release             -sdk iphoneos             -derivedDataPath build_output             CODE_SIGN_IDENTITY=""             CODE_SIGNING_REQUIRED=NO             CODE_SIGNING_ALLOWED=NO             AD_HOC_CODE_SIGNING_ALLOWED=YES             DEVELOPMENT_TEAM=""
+
+          mkdir -p Payload
+          cp -r build_output/Build/Products/Release-iphoneos/FlydigiPlayTogetherMapper.app Payload/
+          zip -r9 FlydigiPlayTogetherMapper.ipa Payload
+
+      - name: Upload Safe Standalone IPA for ESign
+        uses: actions/upload-artifact@v4
+        with:
+          name: Flydigi-PlayTogether-Safe-IPA
+          path: FlydigiPlayTogetherMapper.ipa
