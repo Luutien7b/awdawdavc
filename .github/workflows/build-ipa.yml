@@ -5,6 +5,9 @@ on:
   push:
     branches: [ main, master ]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build-ios:
     runs-on: macos-14
@@ -12,135 +15,41 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Auto-Prepare Project Structure (Supports Direct ZIP or Root Swift Upload)
+      - name: Compile Self-Contained iOS ARM64 IPA Directly (Zero XcodeGen/Xcodebuild Error 74)
         run: |
-          if [ -f "Flydigi_PlayTogether_iOS_IPA_Project.zip" ]; then
-            echo "Found uploaded ZIP archive, extracting automatically..."
-            unzip -o Flydigi_PlayTogether_iOS_IPA_Project.zip
-          fi
+          set -e
+          mkdir -p BuildSrc
+          mkdir -p Payload/FlydigiPlayTogetherMapper.app
 
-          mkdir -p Sources/App
+          echo "H4sIAGV/6moC/8VWzW7bRhA+y0+x1akFLDJCg6AIFAW2KLtEJJu1JBc9rpdDceHV7nZ3KZmXAkFORU95gxRFURRIX8A69KC8iN6kQ/1ZkiW5zaUXckV+8803384sVXt9NxBkCMZyJV+Vq96zMgHJVMxl/1W51z2rfFN+XT+qfRFcNro/RE2iBbeORL3TVtgg5Yrvn2gtwPeDbkCiVtjpEuTw/eZFmZRT5/RL3x+NRh4tUB5TgwJo/cgoDcblLSSrYIAXu7iMaebsG3LwacyZqx+VareQ1xtnp5mMBQQwBKH0AKS7gj6ia37xGlHWGRRfH/Kav1huh3KrBc0v6AC2g85EHvM+J1GXdGgC+xiad8AyR2/EPoII+buqDy4F08baweyjCmOsgCe8QGxSoVleMqfztBvMWDx7QFUoExWgVWgGNfn13MRt1hfes33xBwz59/VElN3SPnRz/YjrJIpa+8I6qTJuIbkzQ2xHf+1V90vfU+zzbfx5AxNlIm4ryZ0ypyi2bxRSNIe4DXYV70wG/lpQpjXqg/gcLWoo6YwSAlOu8NQYWixKy14tzUOxzxO+6Wxppa5550DGc1JN4zWtpZq/5PkvhG3OjDrEVvOXQjcLsw819SyYUDowdNZIux1pda7gx4wbsGGUKgmXnd24i86pyMAp5dITMaK57VnsjQAsM1y7HRv2Znr/tyNyOn7PiaM5YdP7PwZkRUKW8/nliYa7Y3JNYzDHJEAlIyWSY/I9tRqvAMfku+pXZDj5QOIsJ85MPpJP7/l0/DYjtyne30lvuzfWxEaA+rDVqXhKcLBkL5RmC+W4/m1ApuM/ZX9N+7dhQFg6vf81L2BvJf5QpBgsspwscn1xvkMWWuxUi98YnOqn9HQxNSd4kWmRbPy7JoPJB0nSyUd88igbmoJeEPbpnZzBf0bQcDr+pajpLyIn945UX1YfaeqFxanPGS0kdBhIaFPJE7BupWfVv4/xi55rZ8Jx/CrM4lejVKolVNh5C/nrB38vfJjWtoph1/AtVNIs5mpjABbLm+VmVDCnw+09DNKrNtiFAxxfI6moUMbAWmXydZs2J60XtmgmWdphBkBumOQ/YBZDFeO3jTNoUE1vuOCOH6zVDF48P5R4dXbNpjqhDC4Nx+pne3GAuBfuCmhRGVtGNbQgcbtceSLsivdT9/lyf+Kzo+3/1fxEXITyDeWfEdHTlscQqJHc5dByHGr+7F9S/egfc87nhLwJAAA=" | base64 --decode | gunzip > Payload/FlydigiPlayTogetherMapper.app/Info.plist
+          echo "H4sIAGV/6moC/+19a3Mkx3Hg9/0VxbFEd5OD3pnBg9gJkys8d0EC2BUwu1xwubHRmGnMtHeme9jdA2C43gg7FGeHT6GwdDrfhU/nEFc8Hk+2FZYtXcheOMIRBwX/B/QH7J9wmVn9qOqufgwASqLCkLgz012VlZWVlZVV+Sh7NHa9gO2f2EfBg60bNv95xxxZa64TeO5waHnR0zXXs1aHEytw3WAQPVx5uOlOnJ4Z2K6TPHvPDqIfD7aEH+umd2LH5e4d/qHVDexja83wJk5gj6wbN27eZDsre++12RxrGlDeGbCdi7PPuqzjnn/isNWLs79ia+cvu2z9/B+dPuuYU7Z28erzEYsxY7uD80/Y5nDas/v2jRuWMxlFv5I+7bg9a9hm+4FnO/06dK1nHg4t+GL61lZgefzXVs8CtI5s/MWe32Dw14UCzJwE7roVAPLsbVbrXJz9A/vl9wAzQMgZXLz6icN69sXZnzlsdHH2HZsFgGSXkAzxqAmgxtbpIkIJX7EVeMAW2c3oy8bDlVTxhUzxhaj4fKpoK1O0FRVtMm3t/GdsPDj/yYit1dkH7HW2iiQ+dc2pLsA5NnuWt3jfc0VYD/EhYIePb0a/9tO1FpS1FqRa89KvFv1KYVZnO825nQURqZ7tWSfu8EiixXr4kOgR/5hXVGspq7XEak2h2onpj/ctz7Z8sd778JTq0Jfd6Mtqh2mdeMSb7PD8bxwR9RPLUsCyLA4KPzvw5V136jqWUO2Il/xmU6wGvzSaEt3BZHpx9i2H+PAv7WQ2QMsE49j0mN2LOJ49Z5558tCEUuxFUmBs2vj2zsTuWUlReo1//okddAfMt4A8yVPCzkimRDt+g3+eFUw8h9XuXpz9dxZ4F2efskCcL8HFq88CpNWn0IeLV//KXwizuXtx9rkZTZw2s+/ts0dbzngSMO3RoXvK3ocBG1q+z5LJrddRoCGqGnKT9OIYZEMCfHV7g2mbQ9MfjIcwZDD8BFo3aunu4TSt888FdQ87Hgw0G+EUGpz/Hcit7bX1EHs+SW8uttnD809clAog0N6D3gbMuTj7ns3m3mFrA5AVjkQE7KvGO6uzgXvx6hfdBPebMdp15psTqAJzpj84//EYv/4cpI7nAn3Xzj+xEdyrXwRCv0NgH03OfxwQEXBk/qHLAhtaHxPLst4XP704+4GtJEVLTYJVkH0wmOc/5wP7913m9CcXZ993RDq06iQkP3NYH4Tk3zPn/FXA7nPOA2nQt89/NCUCfAsHy81hC3nkYvKkyJdBPhZm9fA7iih1Z+5cvHopd2ZEVERi+yY8PAT0vzVhAdLpU/idIKeF2Ozu66nOAu//JYOR/nTMHt91RxZ7k608iZBXUqI7cLHWD2z2bIAjef5/HAB5/nIK/+LqCAP3fXiXMFOmz7GsrCffW7P1GZqFBqnXDvSmK/Z1tZPu5ONNB/q1GveLevok7pHGO3GK2AOTffESoGIvk6ldZ0KR4fnLm8AIYSEYdz3ss8DsmT4nEhs6HUtc+B6L0SIOjrg2GNhE18OLs28zSexzSX0TBHAdp/MPwzn9+9/kM0pi0444t34fgIOkEWcYySRk3JcjzvEBvpTa5tNBGGRgBhokXGQcmMemNNFHMFoCSV7c4P++kNSrlsF23bktB3Uwtj/1A2sEStYEpObr7O69O/eFXtzdWoeFsW8H9sewRm84fdsBVe3Idswh68Ic9AESB8ThEBherA2TgOt5oFyt3odhGA9AvRrumI7Zt7x1kN19M4i0Kz8ARbLLhhZMs4HpWT1Y7HJBazpfucaefYwgcAUzJz3bvQ8SwfLaoIeuJD9vZ8qO08i0VRhm6w3sHnHpGmBodkFZtH1AGivvTAJUFeUXEgDNt0CW02Lsr5rdZ30PtedVz+71rRXShdts1XWH0O8jc+hb2R7a7jM7uGs6vSEUfeD45pEVNrtnntx3bSdAnKlaMB1b5tA2YW30LKgfD+HGMei1MEnfZt/oug7+AO1d6+pMi3mGQxZA1kGTd4KlBf453yr9jEFtDl0TRr/oQw2CIOi4OM7Wz02Qn19SJ38TnVoZjy2nl9+dPDh1VvCGcCE0Hrp2L9XivhXAewuISCrirK2G/YWPvAY2nI8m1sQCuULd2vH7+9BFZTsrzjSSH/sgLLqB6+V2LGkuM22OnNQcaOdMitu5VTlbtVVMpqokDFtbHkNVaU7ydpb0t+W+oGgEAURicM/CbfS65XdBZgFd2uwx0n75CZDxccypjdMGaK7w7zr9e4v+XcB/V5r0vZk8b7WE5wK3R+8XWknZefre5LAbVHsxgfdW9F2AcWsxhAv/LjeT7+HzJeH5fNLOogQjhLss1Gum4TUW0/2ab2T7Mk/vm0sJ/mEv6MnmJvViM+lLs1GlL2sN/i8VfcLHzj22PJDwFrMdO9B0cUc1gUXI4I/jhyA9esJitz8dHbpDPyzwQmaHo4nTza0gNCSsGsAcvaEL7KjVbvJaN7ftQ8/0pjc3PXME6qH3zL+5de89OzCOogf8d63O9jrb6093772foNufmF6P8yWAFhuyYAHDnSbXrULMCZsjvsRPR03CBr5ogzqrbd2LJIJqbtbEDuFfZk4DsAlJhlU7WDP9QMMW6ixw8ya7gXtZPaUoyRi2qmEoiINcPHkZFZItEUlJslTAcD4HQ0HmKFAS3qowmucYSXKrAi4LObikxJoCH15ChcoCRyUjGZXohFxG8wK0SS/YR2ApTUuaGpx/X8vTxzJcHHc6r8LbsJueWAm399xUZ4lWlu/DEgeFQy11nz8wuN675QDyTtcSxAKtoN40qgm9BwoBPVxvqhm4CT4EdGA34uLZjdGzjszJEBZNd4xLqQ9rgzGyT9+3g8G9APRb/0khZN4VDTui38ggf2Ier5uBCcjDknxk9C0HFObA2reHMNTv85cpzAXFnAg0lbVzrQdV2hHg3Kq3DWcyOrS8e0fbrjvGE7S5Zn7ZY3c4GeF4NIxGQbGxZ42B5h16oBW0PZbfv4C9Jh4yPZclW2Zbwd5+mzn2MMUEimKq7YfWC3dIbTp3qzNSnGCAR6btFDO/Oy7l/QIe5tsPJR0QtECHTE94iZUeLHuB7YM0k9cujh6IFWHN0o5I6G05Peu0HWuQjuuNQGH82Oo9arN1d0KH8snDg+Sh7RMYAML3T/hkxz2Of4udRg6GXetoDGCho6StayPb0UbmqSY0WSe+0fHj1i1dV9U/KKh/kK6fFpfdaAVBaqeXsvqN1JzrRmuDUJqvFJmiZii0qaQgwTMF/UjmxuI3K6gCnGUjszt4ah76MKEC6ylaalLzBEtapMqb/rNoAFEdCEeB3WYLrM1amUqeCV0AYS/VicYSajWhViOLFBYorSVVC4mOM90JomUvHgJNKot/MGNh3fHrDFVR+n/cP/yVKR9xVD3mjahe8n+pUnoJJH2QRkETkERt8rDRaILK2tQz5SNOGtjDXqxdxJyS7ZTUMWHKST/Ym6wpdVcJJqe/8jAYDRwIo6GkGJ27hcNfj4c0TaY8UpFUCnlbJphADQCWJdqLG5lH4awB4j3YggkztLtk0AwXY2VxkMZ4OLUfbUo3PXfELSZa7akl72/bNeXQQYuGZ/lj1+n5Gqo4ABPEBZcvOO1c2vg+7cNKj6dsGlQI39sjRJbO3vD1jhUM3N7WaDy0RtCeyXfPQxhkBJlDPd6LcNsta10AnitdeRv1lO4l8zAWQFyp9bo45VSDof6V3S2MR4BmZq0JyYVbD/W5HLQ/MvBc0cJ12Bi7JxYM6T1HIepgM0gc4ATNJS1eId5g8623lt4yGlmJN1VUOCiqgHhM/NUpLue0VU8LLtz64pSBvWhWVNJ2X73Jj4kfN5Cdb1RNXGjZ67TR1fOKIj2iIuEjevbOO2xZL6s8VVSepitLdZ/I+tHImIxBK7RI29dIpeQUAHhHeNjRhS2G6+xPDvH849DqrQGDAWOAqgsiLkc1ivbN4UEzqSI56iueJZGWK2sOvomzbM+MhpAWn+WGMF5YCtTUfSroF5VCpXcfVnt4l1QA/mlJpY4Ar7DU/BII56hWMkPwCKnHFfKU6o1PDS4mtdre1uZmzcBH2sQn1cgw/a5t66+pK5zAZoGftCFD+Zp71I6RMYZ2EAytDadnmw5IGN7w1xo6e5HT+vsrDzeORgErw4C6PAqwEYF2zSWpAOmjm6hrhToAzcRmegxAFDiONfRzyxxCx1JjmQxwZiQOh2732crQ7jsCwFQRO/BBiedjKTa7VJ3EvPMzU1gFS6DTtcATaHot8BJiXwu4aDivB1g82tcDTuSM2acP/rjq5I0kx8yt0/su7BJhtqGCGgHShW1ReECCrzK7vcyyvW73HpB038eVWXsqlFBa4bIHNkkF5eqee/YYHqDvW96x3bVo0x3aEcJHGpopEIkHD7bWNZ9UujarNZebrRosPbCCjExv2mb8bCQFdss5clH/EOHK+oislKvbaq0srNRSK+vYc8e4n7boKAdU/N4TucAxrpNtPpSPG6dN8XCfH2+3nqRhWt7IpjOfGCginCzEcv8AheB6erdR3ju023t2YOGJlTsJ9khP9q3iTjeaFbsYQS/qLtc2dszxtXR59UoDmmfyudqA8h5eS/fWK42o4wb20VTdT9yXztqZ+Gsyo42uhD5uox4LE7OecHFdHuG6QI4nImDFpgKAJoUVB2GG2etpCU6qszKDTqfFQzJZm19bjd7Rlg65YNvtmsNdc2S9Z4H8iZ0A75tOz+SuG7V6GYwQIxw/n8A8Vgu6hAJPdKX7yLyBjnUOOvC6DuvARt4np170rAX1nhxs/dD9NikYlyvxvRW9bR3XQTldWxt88VNTdIIRvCMPI1+V0DcQiifuK4IfHYMObNq6qmboMijVDJ9Rn7TdfZZyJ1SBQY8fCUaOjyG6NX/HDt2Yw6GU3ERtWMge7K9Szy9e/f2I9dB5SnbU06DA3BrAvNe5I7nHuk5/aLUW7mDtX3734tXnExYMJqxlLNy5+zFDsOtUpIajCkM/6QZs3fa7aKq0eoDyuoVs0la5QNP5Qw90W2Cb+EHe+h37ljrAt9Ggxw975DFq9bh7Vua1B7OfFI7EhdWPPUHxWFfAHpgZJvIYqgMPjWTEYyYLeyA7w8aPDvEYnCZF6sXQPEy8xeOnJnH0rqpfioNrxbuDzDvP7NkTP/PY9t91pyh3nmW6nXAj8CZuztqKvo75KyWqIIX6VoAe/6sTtNpurWeK+HTEZfVC0ku+80mhE3PMp8vK6qOD0ItJ+APRgYz4qctW/mDunVVyensE3w7Qo/BfJ1knefbL76G/ITrX9cktEeafxlvQ41b7Q/fQHN4bm107mMZ0SwbOOgq2QPZ467B4fOyiO1qKtFji3iQoKRFpH2sT71hdYt0z+3vq0cPXeDaBZqsj3woelZY4yPbEs/uDkq5QkeK+UJHizlCRfcvx7cA+BqI+Ki2RZWPbwVVnD8uFnCBXLqZGpoiCHMB7/X5BRy0Hp0Bn4h26e50UCgE+Xbu/n4U69qwjywMBmFmm4iIjLmNQI5ElTujrIR4shTZYNJt1XJhkg3iS8tOlzNwVNjnhxiVTREsrWcnErj1wbKC7bw7jKZSsQnMM0WARHuzh7p2UsqASBLWuOzKOnT6ZPoOwbqqeWjqoI26EMAEjCkBIQUuJETJDykVSc75hLC3WU4elmVnfMJqNbKHUZGkYtxayhVLTpWk0FJDE6f/WsqEokeL5RlmZA0UZlRCAnrUUpbJdW1SUyvStqSolS4OmsdgoLnSAhVopSLJMUAyrSjKoKVBGpoxwABoty0VS8kGBTiIlmq10Ayo5UVt50LmXmhqCsMicksvSQ0N1pLb9dL+ztfZerS6oIsLDUA2pbc/toy4AT0QVpLZuJ2FA80uN//fTWsqCDmRYStnPG8ZbrXqsdhDnStoGHXLUKyG/p0J+L4P8nhr5Ry5G8sF3z8yivdTKoL2wmKC9tHAFtHfvrW88XZGxXu3s0qMI55U0trsD0GSmTHt3MhrrWXyXl7NkXk7wnW+k8SX+mwXh1SzCqwLCq2mE185/NGHd85ewVeiEIRfB+ctuFvW3sqgvCxwy37oy6o+yqD8SUH+UYevzf8ZAhzDc4ewzBbmz7LEk4NxavjLOB1mcDwScD9I476DWumoO3Syyt+azvCzwRmvpysjudbLY0rN4CnbS+N6xw8itlzyqaGa+aC1cGe1tBdrbItrbWbRpC/0IA3Eenr90YNpTLFagQF/BItdL9W3FlNwW5+R2ZlKughDhEZvfZxpAVUgSdMRI4d1cvlay7ynw3hPx3svgDfs4jDE9Jp4Zgyj88UgxKZeK+fzqmD+4L2O+fn9lnT+MUP/Vn34vizuPzA4wNu2lXWl+tirgnWPJVp+dLRisSFdf9/Ad03ic9hwQMgyOnoNFLwlQnluoUzBaHWPR6mHEcJ19s6nLsVlhA6jZj81eHOuUxGXdO/Qt7xgVoiRSKzSmp8K05BiuVPDWN+7Dbsr2B1YvPLQIj/2sXiqmSVG4G+8TxEMKPL0Sw2Q76kD6FKzoUIl2HGlwpcH6PfFATgnfJBdJQfVTHG9CUwaeW6rqH5oBqK/TbeuYb5RcMyBHViP0WEsVh33SNuwN9jm3rd2hWBeE/7HluTkVSM2uXmMYwX9IrkzVWombmKESNtTh2vnD0LpBW3Duo5vbzGxV+PisToKALAf7VvAHfPzfQVvAE1WVcXJ2ltpvK4ck2vLuAodtrW+63p51aDvxgeJtRg6/6kkh++Qij+5NHCd2VC2cJBM/cEc4j/e7ngX7rYFL3g9bI5ijBY2GTkFotvc61mkgzod//+F3/4UJwfnpjBWJVIrkFImlUCQl4kgSRSCCXqupKWej/4B33/VFfgm/aadtttAC8QrSvNUM3aeyALZ8VLsrUQxKb5s+ebPD5Ex1HZexH8PX6fnfOLVMSBZU7dgjFJT0kY3ZiicNdFwZupmukMyYqjW6Ew9d5/hsPrHH1u4jif2XWhWqHEhVFhaV44Lmb7SiZ2mEZ7DPBqDP2hgR/tJNOMIwjFoOj3dNYunV7Y0KYzRwT1aGw9jm4JdX6cWWirjKY4X14kky30USQV/ve5bvo9khUMiHLE2ltbCdWR1fy9aIVr77OWaR25mgPpjaHgADVUZI8PE0VhNWO09DifT0+K1wboFG0UnSZ6A5hvUuzr7dHYBqdvaZMHXvrHQ6ML8pPwWf35QmAUb1z7Ln7hnMzOEwfCUaD2PLoeyImOc2AbgCgzk9dN1AixiGlN9DLYdwS6xzoXEMw/wLYDY2Q5irfC1lIWa5VTY3NxphlUiOJSa542aka91sCXKMtfQCeJsF8FpMCzW2m/OixobgeZ6eAsjrjTTkXZiUc3csh92FWT23P7YsTkMtyityM1YR4Qej7BZJ+pubC/mNrWxkGtsfmR7PCVJG06WNhQb8NedWF1fm5zbnb83PbTRWbs1tLDY2Wgvra2srtzZqOsLedb2e3WUPVvY6kTk0zl8Tpc/Rq0VMhs7AobfjAx91Uzpl99GgTvzFnaSOXI+2Bcm80rPxD+YxpRgIvOlt9u7+vd11qwsLsqfpRo++aRl9wOBROEeeO+L+VGnvanxvhPoEeRMeCw7kL0K/pKIa2SaL7AiKaDwpqFQk3O+Zx6Y9RD1fQ5N4c8GA/cQb6Q7cWUswMEA4T4agpQAw10vUFnLm9qNItywKssQk5xJZZFYMa/KtYDKGxeEuDOuJ6Vl8pwICUeg4+VEsNTbv7/O0EBgZJgccIQdKmj4l2OCKftbsGFyc/S0v8dEEN+h9dnj+MhGmGSsPbbLso2kiI23L15BBJJs3WXy0lP0aPeSx+LZoYE7HKg3dE9TtAJYxRP82tPD3BALglHBPDNxCAfF8rWZS5jCYen/0R4o3+CJ2jKMIv3om+xjvBBR8UdLKUl4rS6WtLFVvZSGvlYXSVhaqtzKf18p8aSvz1Vtp5bWS+6K09SptH/MUbao2eE6kolbkbG+L+1WaWshtaqG8KUoRV6WV+dxW5stbma/YSjmkKiPQi7PTqXCOkzQVNbYugqjS1HxRU/OVmpqv1lQlWFXIhJmbioCRtlAJkGUVwgEFrwqYP+SJ+AogvRuVKIDyUVM1EkeW/fHAVr4Jz59Ur3r9TPh8DmbCkSJtiGp5wftSA6eH7qmq4ZMo015yWKdkrwls2wZu91nuS8vxrbIurCmzvgnZ/8iRr1qHQLcqwZlnNrwcTlGqwd198hPUlThFkLihmdU6YnavGFYtGycduP0+7M0VgdwrTm/bhCIDPBBK68gF50ypPuam1wqDH438QHLZvl/QYjqaXIhUiw+l+GnD+aeUdy6QEvlRbrQpngH/iSOmNVMp0xW6k5sUYob+SHpvXnf+/Yc/ePlv//QX7JffXdm9w9buXrz65IDtXpz98S4jffU1dvf80ynPH5fxzgHWQOtQ/+Lse91w774yBskHergV5oPrDr54aSvyvGUzxKh1ZDERTXjaBWjTp+F3B1ZvMrR69JOiSfAbZuDwjvE0A2N7b0I/0BziWWPLDPzQ7g6S8vGJZT4jzf4JewqbONl/J04YQ5lE3+YfeWk24li507CkkTqtNk6zZad5ZaeZoHDz0Nd6pzp7h6L1UTTQk2n8RBWlDZCTk0wDMYvi/7Pv3kTU32ALBmz+lxuw2X5rSRGUnK43LYA5RZjTCOZbCHN+vqEMMX4tqhsfmuYEA0fl5OPS5AgwnIPkV8K0DzWMAhpMx24AxKszJNcbrNlo6PrX9VqViOtwHz/EI/RosMI9sBG5zRhHtucH2gnMCNhGPWdfaxh2D+N8Yp8Y9iIvuDnue/aYNqdGTAVFDcWEn03opLJd5EIiuS+mwmjWC8tKxksipiFmsKhY9yBb96C4rphvg1bHktJRLo7sOiDF+SvfKOV8JiMEeS/uYkKPDBlguvATcJrobzCNl+AmXRBiywsLRkOvAv5AAf5AAD9VgZ+/1SgC/1vCPBEBZ+CZiChfDqsUzrgcTilLL5DHSSAtZhMW+YIin8O/bJH3H5JI4cZ5zaLoRvkT9ar7+ut8wCXjtGH7G6NxML3Empw2XRbl1Mhmkoh1qbQVX6FMedPcwlOVMuVFylQrUqa8afzkeZ4i4F1uVuxVVwQU5tcyTUBVpUQVoHoKuy1GDKYnxaxADhRADn4ToqA1gyjII8gMEiGPHF8hFSWXLd58O1IePNJNYJY0lmdnDAHMtBxMOFNzkZrL8iqfwc3laE7nYpKtexDXfV44BNcyda5t+rz4j4n1lVHoIvWtmogvEO3quX89A15loK8wwFcY2IoqVJmI1HNTeaUPNQeUHzgxM3N1iIzK2jNruuYm18/U0T/ICyQDKfrfhh482eyOdPgZvq2H2UrtAL2H17l6ofLcS3FJqJPYdOakVkZoHBUaSdKYUiNJA3sMbTwxIidmaC3sfsWK5OiM3YpppOJ2ZY8Tb0GptHlsZX0Lig45f/U//xOjc9s+euDzS5sef6glGOlP+K0WdLsJvFH3JHHS1p+8VruRP+X5AWFOnrh45FOkT2ndjm95MafpxQfKclXPGrnHlqJqgsaR6zHN5lkVbRAJOrOdLBNhXgTKOtbTdEZsxF7D0kbiWo57BnqUsEfMH1mGzet69BoBJUSWPAkEQ4hDgU3cRMLR6Qlvw1ipPFU7jLvbt0eTIfYM9z4KLipUlpTbnffOf9Lllxa9DNrsQy3VGT3NcLXKaQavR7wrktdyDmBvsnlFSIMk5qkzhVtlSbSniitEuijOE1F4YxZxrlewKahHO5tYW9oG553yS4VSWywlS/zq7/4UTSu7dy9e/eiAae8+2LmvC3Jj3fbHmJz5m+hWRE5FhulPne7KUUDOR2ZvSJfTACVPAOk30TO2lbZcpOwW+PC2kcJUpl12qTN7vV3rZI08t7kQ0TK5iOnl7mREiXZPMwLSoMRbeCGilAOWUtxZJ7Ss1dYe7Hfu7Tz9UCMXPd2YTOweXywxvfWRfaot6sLBfFQX7/x5Ox1hI0sWWGKpFZmBssGS8rlBGIBzO/VcDqLEBSE4/2e84+ri7M+dAfu9D7WYGHqqaipMJx2DnArZWUzHMUfhO2+lY3kzoTyKXEmZEQnTooUkFP3VchdbpOGN4mVWbUP83p+zyC76MlxFR3htVGg9XL149b92WJPdv3v+nR361WHvXZz9Y2gzzPq3ac/Idoguw+LliqFNEVfx0KQosjG66wXhKqglqVNEVs4Qia+VK8OhqB/Bv7CsvYa/k4VOst3n0pAqPy9WaESRUpnGRN7T85+ZnLro7f4XtnCTn4Ie0MfhNAowX3F6FECveeaJkKgcfkkZyoUoHq60YgqIMAYiJRHMIe16ARxMe02oym7HdM4kFWDt+F02ll5PN3DAGzio3sBBUQMHupxiz6YsBR9Qfts84FImgzRw6aUE2qXUBh+E0jIfvJQCIQ1eelmP0cWFoLGYIhaObWFHpDQK6ZaklzKRRiYuIf5HoIzSkL/BR/5NPj706yB90QrWeSfGV15PKe4qnewwkYw71BxalTWEMhdB0dlNpkVUTZ7W0cavIEUIZwwrpwS7zl/LNXq2h6xM/bqJyKffHvC3B+FbWZtPCK50zBHihqidNxIEKYiIwAsPS1R9nmzX4XMjGkMxbwUM+xzB5KCLUMqoW4AjsitSP40rfJc4Rsy3wQehTuGBCk1ymkANMa8G90CCW0X3477OMNiHlCsZB4XP/13SoLLrQFY+JWeUQkijcaqXVj3IqTrNVs1KPqluEhipajcr1fIqT0Uul1xMpPDHJDtKQYHsQiWSHNR3K/gAyq+FtLdTKmQRvaMIyTLiqsopKVmpYBpicQelt7mRHnGIxoYThWhY9C1Sl9ObUnVoCGBHyWsphXg6PqSA8WkUVFheOW6j2vnMjMoM3g5qY2g+Xkrqf/EyTDJA6k13MLl49WOHblPNeJ3Jqo4Qsr5oRDEU6zyGgqcvVN2/Hgf3TEwpmIRp4g2vodvk7n6dMjKqnNbygz9S+pLTpXtCMd0fv7iBc2M0AHFZp4uJOSM4GCLEtyKGiOa63QsDuuvhBQw8N6kcoqJwcgs3iLDdAm4Z8AODBCxi/WJmTCiq8TeIDEyLQxfof1WiIEs/2F+NwN3zePrJqmjsuBPfuiYcCJaEwA116BP6TEa3i4uDwuNMp3jvU7L455E5LpJLgXSJFH5Zj+Dw3IXaivCLsZLmxpfZHwK3ur2Bsb7KZSuX8TIiPvHNhmks4dwVK/KD9/TJZ5JlQmWa51cMnSAjoZ6ZQD6G/TtnMHb7tspjPsGiloHYDe9dk0HCUtCbdONL2dTBWjEIHjUWyqvoJrX8WLJ23I03WQ3+92aMhAw7k/wiuiYmbssQQs4y3rBhI3nHwy0jDF4pKcfzz1Yq6lldC2OclafKqVQbqDrFqW1zDIHCgNj+ShCY6MjccXkABOIT0S0V2dCrhO3EP6yKaJTANwfPkoZUMQsKzHMCF3JQSuU6ruYbVwSHL+ZF7kZyYhd+5oDfVPa2MDGKPKuih8+lvClQJvxpSI/lk32UqKI8IWy1BLhe3bLEr/8IhUg6tr+Or4RrCOIiswmrIkqDpC2mK2LgZMTZ9kauICvoroRm6iLALI6OeECTwatKAh8aK3l0KR1OcnqbbPqy+ytxY5Z5e+Xdmcr+B0ppwXW8aq57KpCmLa1yWZsJMlufp2uSJwPo+LBuWb0wl1P+LRdhbdrsdQaT0SEdtBqUah8vcOlbPX5JL3ZY1pi0pzJ6GL1Hx/b3MYX/aTu63nwaftOvHt+RZ61RSCPyoD1NtuWnurrINCkyN80Jt0ixlXCaNDyl/g3zama5ijt3FpwKI0h+Ijycpk6D5ZtEVM4T4pDyjEi/a2PqlY+pV3FMJWkgDKrHB9XLrZoVBaWj6sWj6qVHVZEXTnm9HWyyhfxLgZifDD4xYTpt2ylrer1SynSeLt2PwnaiMLokUFGn7OuHlL8vNsB9xwnby3DcIQm/FbQkoil5Rl7jojPc9T+NWW0sO/BcS4xYV+FDLCeUZrejZKksNl1mwAwPh6wCGAKRqp7P9RxcJc8n7Ibs9wQYSU5PIfH0QkHBh231d2nYVuJhW73ssIUgftuH7dHv0rAdxMP26LLDxkE8+m0ftoPfpWF7FA/bwWWHjYM4+O0dNtLkKMkRneD82sauhAa3qxEhyTIsEoKnGp6VElz9+WqTYi9Dir3LkEJIU3op9VoiA0XLf0nzeQYlO963iMlUE4UasFRr3WbkGy8UZO+kJn7qxgU8rAq7qsZjBubuZJi7I48oR3DW/dPv4uhmcuX+9g/vXmZ49y45vFF07Tz0RX36wbFI+3zM/zpF3XVL/vnM5JgvFXclBPREAqbOGpQU9L7KFNzLUHDv8hSMqNbDfybjr+AamqTQl2jC8+jPuooSGXruifNVJcT6vfd3s6T4/mVJgdLoq0qK7Y3NTpYU370sKUiufFVpsbd1566CGP+lIjHyTAZq9wiVaeBZWIys5VEdo+uaQ8vvWr3bRlSAZ0rLUzEwMl409VzVVqW2zGYNQlLy3/BG0rtb6zUF00QdwR5VYpP3xJ4Te+SyTjyqVGuNtpO/SQ2On86q47uIkHixKxLi/XZ+tgjZPZLcWHlQ2G2yqLG25Jh3HXaNbLPxkbgCo1LLh9TT/cv19KvX0ZWqHT39qg/p+uV6+hXrKMz6rnVoegWdra6jrqTXmhX1SpNP9I06M7h8uudtoGfkteCVOWtZrYhX6JbZZoceyO/KsZqly2fas0+1do6wDC2cVDoKkr9t0IviBZOK8II77nHZUrQTA6xj+FRgPop1Ffp58BuztXaH5miMedHejoMHogRmhCfGgzQXMbFjXoxACtJBFtIc72M1UGWW2whhst9GbV6jFTeBzyd/1MRsFl214/SSwdZcz5Lvg+f2d0b3pAADva64Duy+2X0GFA5vJKh4647oVi/5Z2bmgpyhX/BdGqM/mtW75+RyXOb2lYxXDNcfhVtg0hpkunUouel6iUOVTwlHwwso/NDN1x2jxwK/eES+TQBbukdvAQf3ZH0yHqKzo+WThz8N2xNdsrhvX7z6bMqGk/OfO5krj2Rj+jPBfcnpU4GPJiZeldjNXrnSvTj73JQuUkmsLqEyDZouXpyQogAQ2bOtY2st61yWpoX6OhZdyj8wRq9nucnnGIp8z3sw7gFhkstyknY04COzd7xuBiaQuP0EJoPv28DCC4u6IiIC0wKr2CvDWO5YcBFWcUbiYCaFGnHsO258nY/2FAQnfmkzxWU/UjZbETfRNS1NW2idgzTG8bOi8reN6N6KUKzkdTusq2Wgp9iYF0sa4FxMoQzTe07i/Q8PiZdxFj3Jdz0rG+KnbJxzIZE49vvhDS8rzjTmgi0nSEddQIVwS6eFdaFHKz0Ml7N9awQEwWfbbtckR2TA/wkz/dtx6DA6Ksoh6YmntpbgGXs1hu3peBw9gqWmj/lwYR+KzuG202bGycCGOY+qlw8Cftc6wRh/X0/FpR65M3hbyxeovJa5qwqDmSNP3jiZX1Zk8lhHH28Hkt1g40q30znB8ZqcD0Uy2D2gqH1kA3dlo/uXdF1HU2vkXXtDmcomK7kLc9koG8/mtclA5RldHN5RodtVakX+63wwMOoWBkxyWa8ABFkWaQwfVYrHl7JEzcUPiuNFs+QM8wKoTqzT8kqdJApD65VkV6dkEmezIGPUCaIomEYYDnUxeQDaGfqra3Ehgf/m5Y6K773JobA6i5ReQnAfz56eM43yCUSjeJvhZrGpsz+AF03Vi6LkVLIkX7d7XJ7S9XjoxctfZ2+BSwW2hOWUmpXMRuLde3g+JlwtcPHq/zrMP/8E9BAtc0mjdFNpKuu2Ijonl43T7VNaCe4cmKAS3h53/nJaq0y7ImrBJiiMbsNL4ApXJXk9idcnJi5QbG9/fwvvtN2djA7lsShVe1RrYKbZaB3EdgzYlpB9Vb8qAcL1P7f/Ek/lH8hWDRygWEkulhXra2nUQOYo1xGFuiryqHSZdWhBV4n3wlxjolIu7awwOxTBxMUzg5GYAkcgQCRWIh1bg+2Gfi28ndLuCvjc8jy8Q3cDP26nRYlKERVW5Nyl+nmOzisnSpHuw1Tu5UrCAUUqjaspm8Lkj6ieTwLxQCQsK/U4fpq3Y8UtUViIh4OG5Z+ruCDWKm20eRMzULR4O6qn2g3N3u1UM5sJilgpJEq9ClG6AMmn/QjVMboy5EKqwMYVd4oEIZNSrjtAD5AxCkLLT4LODIe2JzwkLaeI7fRoB67MgSiOXMD3OiROw3t2iNbdgV6Qsq0AOc8yeyWtYhHeYElT6TOdO6Cgf4qZgT7FwwHWt00Xr1I9+3GXoumD5DJWOh5I3zCYSCpncP5JkpBJvIn05nGrnlz4iYc+N+nM56Z85HMTr69qzuFhbZ2c+cM7VfXLsCRfHIkim8QTIv+QeJOeVGLKMG2DDIu7W9XZa/g23vrk8SeF3E0Dmu2PMave8hPK3SDvyVIt4NYIBWL6stLWSvMW3nTKc7xgHPHbHLgyqjgVjEbntHS6ideeUAXMjoPXneD5ZiNtl8gPreME4g3ztG7vvM0W8+O46Irf3Bvr71p0+xw/dcJ7K3nMyNlfK46z2iLMOdY43dwA3OFjnT5WmvTRaLbZnfOfibfZJlfD8ix24Y29/MLcufjm2dbconjV7Zxw6yw1+N7g/OcYkHL+MzYgtMOG8CLgKCUFZnj8RZdf8XaTX8HbkdhhYPphn99mGlHxceMJDjd1B+RR6tl69tlKM/usAVsC2MinhuUtOesUpTaBdhMcbrMmGqVupM8wtsWT9ehAnLfIoTzRMZtfa9loEP9QUjrlAXkE8KAEIHuTNUuBxlDpMnLzZC+d0CV6ns7fArNMIg2LG51P+4KFUEtwbVUmQAS0AgHmKwMV5ld+CCCNIw8YwwHQc+NN5Tp7cZ29g6IcQYVBZbzpMK4MWy80PSosHiXQ90ToezlmDlkOB04zlpgRG2gx7Rd0mAyp8Vh4QpMjBaVVAGVRAWVRCWW+AMqSAsrSE3migkTCKzS+06WQt8+nJDU/56s2T5JDIlWxz4ZNZ51hHF6dAd224dse/LfdgU/4DxMqhnd/30QBqfPFeYEDHX7xUwC006yzHVjkd+bhvwWpZ+jygDtxPBzWolzX0Se5pMiXreOfFtuIuWEY5CKO1euhWHsNpnIqb5gWW2+5yVas0Sqo8YhqPErVWOA1UKgKT5cL4BwQnAMZTrNRUGONaqzJNVoNueX5cjgUF8GjIxI4C0U1KHyABxEkNZYL2+hQG52wRqt8JMjjmfs9CzWKRuIDoscHET1aypGYl6ikhLPTxJbp3wROU0nXwh7stAhOS4KjHp/Cfu3ME5x5Cc6CGs5CEZwFgrMgwVlWw4k4NQbzJJXKmwcaUUZbFJS77sm6e+JQVu94vioSCZ6YPpbjmRmE/XW8U+lKCcTjlIchfMqSGsHI7mZkmGFC8yxE/LtsNFXU4difQxGmHmczeU1CvCreYTb1LxnvSmZ70AkEo/1bBtsamX2L3YcV0fJu3IB9xKQbMMy7sN/1LMuBJgP+EjN+P7StkwTTPQtdXwBPEzOGcCJ8YxW3xCD+UcmKcr5RG1ifvtzmBTecY9tzHTx41D7EU4mR7ft6bOfD+uFD4fxhZD6z0mhQohPYSbbpMA++UMbZsDGOu5CcTbbtjek1MG9OceFwiBcVDaNhu8Dqrgd9NkEnSZf23YnXtTrTMZY3xkBMdxuzG3rT9JW5vELmwGVCe9ZMl5+yiS0/aud1oc6y9Hn+IkXTtaQLGk/YmzyADZv4Gs3BcTYxSsbJEy+JhfCE+h6lLqsDWrvmsd3n+eqSzAwhGet5aEcF0gNmohtTW8mhiSLv2JiIpKisHgVh8kJ40Ma/iDccIHVsJVs8DcergOo9u7cJiPgDfAUzYsfq2eb7djDYQtMsWofauN1X1jawDN6EwM/+9Zx7O0b90JL32HBBO8axIHDc/hzCVp0RUVcNaXoipFG/4CwqrBTOSU11+3M+wTCnnel0rWE55dKdLWk3LdKWDbYD6w7lxWR0je+R2bVu3PgGuotF8i1UcsWMlSvjcZtuHuato/g5dHuYONMdWWy/azkiJd8HKeee3PHcyTiFLs0xJ8DJqcY1REEo12b4byRAaaXlk0cShiN+6E7HNIR9mBwnOqjXhepSRTTmr8XuFXcnh5IvSk6FaFO1H0x6tlulxn0UbvcjecqLq0gp9JVy91nwMPCme/ys4TnrW27aU/ADaDGTG1lMWNXfoqkwirxS6ABHnvY593AQC2oTO1yiCFL+Haawkvv2x7jcaQWF/K6JF0q7m7ZkXciUO/LwRvMTuxcM2thtA2BbBv2us4GF213hOX9QAK47tMfjTBI+qYjdd1zoAt74veJZ5qyXlmzbjmV6d/CSAUuV+zkxoA1djzx/8IvmoXbSMBq36qyPw4E/Wg1MJobpLBvGfAv2j3LRRaFos5kUbd7Sn+Tfw0XWYDqlaDMjcMf5JS2nF5U7dEHfGilLqimpoKKyXHxjiCRmQJiZWsio7Yhj9SpXST+kWaCh4w+d9S7m3U8zxiTAHXfcgZ30oekpy6CpMULDSNsgi3gWxJZm+GQh05Av2wzH5yTkVqDmsKcX1vcsftE8H/AIhaJr6G8zg5gBVkNjaqHnY0EDIBFR/9QM0JXtj3ETAlpys1WlBpnCu1h+oaD4YYyjRl0wDofwxHBxWIKp1jDeWiwiQNf1gMp7dE+H1sy5L3kfnbs81fS8Ua3Dy3pBQZwZyhIfcw+p5qKCozddb8PsDrSvRSOWvgcDNaqv4a09qlBW/LuPbMnP1rkMxVTQtE7mX+AI4Nocav5c7prOsenvEy9G0jK/tLBhinoip76LN67SnVR6EcT3+WVoPKN1Arfohg9+51Q+0P7QPUQ3SWKqBGREdOl1kUCMT0vbUZvyLcu3Y9Dps9s208Qae9kamQPZNs8pWEQr8baLPdwTlOJVdJNGukz2Ro18VFxnn8YnHpd2yb2doGxUH9kSWBRmUQZMeXNdLpS8HOmDi7PPxcxnZ39p8+vrjFoh8NK7Xqv3I6TJlfoSXhAUJnvDvjzOXpD2pK26LKizd/6fd1ln5QBTuP/vHba5fbC+dWdLuAnotRJS5N+eWsRf63SZUBlbRZ3OXD0UUk2/ZOOe2d/AHJpV2y++ErGYFPqMwU1cTR5YVqBxeYx57AHTr2X2Knp2e5W83EcItILkK1QVGpT3OukW5bfX1KSwWUq3pzqt0FInaV8r2umUXGqH27GUhqjemd1N6ZtLaUyVaTJo2VHsODOR1S+i29Oy9e9W1XRJiwXR8N1/qalZds32usWbtSPcpCVaaOJ7eJtvSWLVk/9yPYzOrrqpW072cct6uR4uOx6WauFdk6IoSOfWZlG6eQRBQQUMKNi2R3agNS+vg94q0kETXXtJUaxcx15W9DelWy/oRQm7C5lXPsuYhXXpdF6rXbz6kTOgqYzBo7RbCqdujQ6BDRg2DI0zef74G1cc5coDMMMgqAcisFQZltRcRoOWU/hahipW4BWXT844YJ3B+d+MGF7VmB2w4QR2BSRISFp8lYaLhNeve7zS4ntBJb75wRundHhRZkhjVPQH5vCIiI33FVQgd6tqH7tTU0EPvo58SG5vhVst9gZ3h/t6NaxCLjBGruNSwFZv3e6DVNWvhm52oZlXEGB/aOMFUuSLKKgM6i0ks+msrWEYRhP9iWBYxvwkDvf1T/P29NWUR8WKIS+TjSInWPVseUu/MeMpziVObrJsX30NyZygX2IZiWBkZFLPNofGADSLr5xEGk+88dCqyv8Fisr1LiGB24eVWD6DXPXsXh/dyrbNidMd4Go+67pSOGmKzzxrfLO7Nrh49XLKdi/O/sTheWopYkl8zLQVh3Xc80+c9GXCMT+KzFOx+e7A6j4bmd4z2MTY1rDHOQ0xCH+n5fSN8l1hRY7MOcRtXItCWa37s+j+lVfSMpbNtxbm2xJk42F4q1gvtB8KdsO22mxYxUSnNL/tYXet3l6kxGpi39qspRos6Iz7zFp1PVyXOE1pggsiuIm2INx+vM+XhqaxWDyc5XjwLZ66uca8Xpn/Firy32L6+PxhFX1INsikr4IvFPCyNaZRzRqTZdoi00plK0MeUVpV14f0mryUZ02RJ9OywmSRazbGv43h0B775UcDaqwW9KpHAPNLyRlAs8iuxJ14NZiDrVaORXHG0wzgoi3/3clonC/S8vVLRU+E04z55aKewLCDmNIKjx2z+n8O2rUjuz/xLOMP4QkGQtESFD47MYfPanrpuXI4TwI7GFrzpccll9og5ZuLU4Ob08u5+QV03S4AYTr2iN+Ka1imb92bBFpvwu/JJcv4sk5Zmic5lKx+RMunsItXKENjAiwMj7rv+kVeLbk2PnmZEp0EuY3vPWu6ww2JW/D7RuTuJdr21u7gZ/xKMOShy7jwPGWOk96m7Go8xCJ+K9nLwoCHBLDCdpWqr7ApcXe6h25o/uClIsuA+mVyci+8r7BOk3+c6z+KLC7JreV4DTeGlSTkjNxMmnq6+kG2+kG2OhcEVL9YT0BnXzJk+O+6U19xx3mpYFOpDSi3JD2hZVRZYcJmRMmOkET9Y1HXq2y4qU8erT1AnFYiGVMvFJJ8hs76wXQIbLJPz/bxhybpRtBuz/Th6+P5OkYbVV3qPatX2MlcKaTuPfy3docHD2YnSYE1OIdmxeByDFAzkjnFAVWGvCWs5K28/W4o6HO7fNoWhYxxCn3VxO7PseZ8AcWmcvWpsnpVCqX10mahmYWaoe2urt7GzbR7T0AK5luVPntLBVg9ZC+qXfTJxZQGoq1P3ufcV6zjmfaQ8jWpaZAmVksvsKsWap6VtTmZWVPrWqzQ8V0puWtEK2KOsqc67qrS+uXkXincSmrizMRKCdJcsvHdjppsxLcx2fgZurzalONRXIKzfwY1PNz5bGQYBiq5woSrquHKO8F5YSc4sMzj6aWU3hJbYb5vhHKK35i1F7eETowsYK+RXgpkth4U7PhLKpVuXhcXy5CVNrE57b3IWWqcjjm+Y/kB7ITY86zuKd/5Xuk0NO27kjPfCo49C8w7p3SYWG5IK+TppZlHP1fXqaohcvaZbWi4FgCL/RKFSc8tXcpDJmKkrKDgeaKlzUzSQrJ5AwRwQ0A4oGovlOlzxpGlL249Qo5SDD1wXJicHtiNtpp5ZqF09l0b95Gn3BRlDN3wgvZTdjN3V1JH29MCfdzK0bXSiXnVjUyzjSR7F2plibeSM/kyO6m3455VKX+QlD+oYhdzHdr6hTY3cTeoienc9MzOO8dN6arHw1Rt1lC94m1qEg6WehG6GY8UYmWfuxJpUUoNbrBtGuw9++LsWyMWeCbljPuHLgswu+QYXf0+d9iKYw7dPtO28fInkLKmp9f0qipes1DHS1u5Wwt6icLHkSGHWUKl2Pc5+qNTKxCfvEMd7/ylDf2ZIzB59h7xzzNPwlCH2G9XSAZRXn/suV1Sj1JQUv7C5YCkvVy73L+3HKI7Ccog3hOL3Li8wnYdY3d/QGmVtL0rDl6SluPyo5f23b7y8M3iel1x/AjkdQzgi7ITblggQs3esJ0jDB+d5hzBq2Z+sZyopHClTcNdWD0OPUrHCUOEafcsb9c9Kdn/VNDLUg4Gv/of/+3f/ukv2Nr5jxwWnP9oRL7V38NsXt75z+2M24HfxQN4fUb/w+Ih4CoYEYifcAE8PPwClvVcWNSh7yX6W2DT6T55plUYBq326PxnJhtenP1Zd0C9rukzDA168gYfWJ67Fo6RnXE3m7HzEjX1SxBqVs5/USXcTL3ktgzKKPNXmDPmr0G16oBe0Gf+BLgm4NlftMbX8dC62Wh8vXytFQ9hhtBQwQFM4qfFERjgyu9QXrpvU8uYE7O6Axfh+baM/wB9KFjAPSnyifrrcKyazcHqSxvueSNWLJmogLzOxCXtyxnmh+f/zIM9MAcqCSdJBaK1JsZOzxv9bNhQiQtfhRHOqirRKOMwN4wFcZybv8FxvuoQ7Pa/+OnF2UtcD2CCdHl6PvpO10YwjVbnaoMgLeTXNAgSzGgQlsK59rsyCB2B9KeuOWVroLLAfme3j/5hWge2PZ912SMiPk+ihfk+RyY0Uvu60TqCVVypWe1bDh4THIOUeqTrp5cfiQy0aCTmcSQW5JFY/B0ciXVKsRaNxMFVRuLgWkfi4Ld1JPIXoJxBiFQ3TK+J8YtEaVqp8R6Jv2Ld809sSnL3i4D1cZiA1p6Lmy+jZ/EjErxeuWCIJf2uuKcvZvOlcOIDjw7uBxO3XlhGuS4TCFpIavSNgMdoqVzG+Bt0mNDGQ7NrhfzcdWEP43FnEe5CppdQdfuLn04ImfOfOf1aFSpVY4ds0pbLkTHraKLaj0tnXXg6GG6/+VSMnyZ76rSHR3qzXOgBknX+kHezwtvooIy3DthGDi1k5AYttNlYNhpVzs5KXQlJUFG/q+zScu2UqnNwlflQNg7GfUvMgvEjPb8NhX8H2dxkL8Byt9CstTJuXXApkIZJV2CaW7ZqF8q8NhZjr42FOqZzvS6vjYJOS5xb0mm5rF7CG/KcoQtAMAdAbEsFpCt4G8o9aAp25bzUHYKNRUaB+1QkHbvJWng9nc6NIHLRqbpoUTQKTbD04g56aJvhCl9n4TqfxinzRGWMLbN/4hTGWxV90F3QHBpHFelVnNJl6quzZ90yYHs1gbWog/ut92jrtUvqfoeSvq9h0vd1ShTbQf0nle89uuxGSHKliNb+jdkkoihquihjw5mM4haS9GP0TpCI6gKYY/ih7GwZ6WBRI2FFKk6XgBnmJHDX6a4OMS77CsaSbdtX5bXCZOrexSvatg1wrzzgadQDeGZX3PjLADJZ1vN3/HfLXF/yHX/l6GshAEW0GaP3r4mp0xyT3E3cE9BEfH7pvOmEV67XZjQSqzFIsg6VRX1nnIzzi+bvP0A1j5b1+bIDyaKw8RARHE9cdio4otT4jMZbj3DrkmSkSN8rU93Xepaz4SriKh/3O8ntFCLyqbuCjGjCzt6H1mWw9y0YFVhXpl/KXglm+BpPgpK+e0O+1LOHR2gVZ3wJQJ4p/BClQv7kD7NVhPyUlRr1UASTz/rXqknO/IkQpaRSi2jDHA7XTN+ixFQjkuolW10+qahuzC1GYPbTz67lHCJ2ptDco6qLSMl2vfreLMcviAiQWSSNsWmjunNnYvcqJ6WYJRuFMFfUaFFsJp37v/rUxRtov432qZ9we8PKr/70v67C5vURfB4wbZ1OjZ8NbNYHXg2Yj/PAAeWly/ZP7KA7YLv7Ol3gfU/JgyfmmJdbWX10cA29LR5mubVfx3mMWpo0DfbNyfmPA/mWMbrtJ+fa4OouGirAHclXo9qlz1fQOaTlUrwHMHY5nhyWr5e5WflSxylChKlwAXAc0fsR0iP08ayliFNqiRRSZKkuPpzB8n0Zk+uLwvl5N1Yzo+uhAumq15gDTidEBtMZZCdi5urZL2sOZhuKnK7UNM4TmtEqFGtN6cs7EW7POi6a2Her+ItX0hxbVUzZlZqT5g7gbziii34yXyqreOREcoSkEK4qfV7ZoZvLk3j/Ubleritpo3ra0uouw0uXBVIaKlvdCzkV0tRanLVnklNyxR69uHH1ElEaFmQR+X5enf3qj38UXn7K3+M1pTrrrY4qssLMOv2l9fryvpYuJJLFI7kDtEaqrHz1unhxPNBFr0DmS3vbXG3H0jKY0BeU/8KSYN/bZ9qjLWc8CdhNQVNDT4Pzl2P2YH8Vj+eMhTvVHVUuA/0KSkYlJ68wY/nEw/v2Huxtxzf3PdhaGY+Hdui17I4tZ98K0Ofbh1LRVfLl0lIG4w9MGFmCpkGTl+XZin5loU/ZzsXZD4GsiT1OGoeMT1nfMr3aZTSYqupYbfv8kxGqsT+wK6tXQO8+fPKbYN8HhXRo+X50pen0GhWuL8fA2ElUsE726O7Xb1985HKzYmIQvJTx7/8DdJl0QsYxAQA=" | base64 --decode | gunzip > BuildSrc/App.swift
 
-          if [ -f "FlydigiPlayTogetherMapper.swift" ] && [ ! -f "Sources/App/FlydigiPlayTogetherMapper.swift" ]; then
-            cp FlydigiPlayTogetherMapper.swift Sources/App/FlydigiPlayTogetherMapper.swift
-          fi
+          echo -n "APPL????" > Payload/FlydigiPlayTogetherMapper.app/PkgInfo
+          plutil -lint Payload/FlydigiPlayTogetherMapper.app/Info.plist
 
-          if [ ! -f "Sources/App/Info.plist" ]; then
-            cat << 'PLIST' > Sources/App/Info.plist
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-              <key>CFBundleDevelopmentRegion</key>
-              <string>vi</string>
-              <key>CFBundleDisplayName</key>
-              <string>Flydigi PT Safe</string>
-              <key>CFBundleExecutable</key>
-              <string>$(EXECUTABLE_NAME)</string>
-              <key>CFBundleIdentifier</key>
-              <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-              <key>CFBundleInfoDictionaryVersion</key>
-              <string>6.0</string>
-              <key>CFBundleName</key>
-              <string>$(PRODUCT_NAME)</string>
-              <key>CFBundlePackageType</key>
-              <string>APPL</string>
-              <key>CFBundleShortVersionString</key>
-              <string>3.0.0</string>
-              <key>CFBundleVersion</key>
-              <string>3</string>
-              <key>NSBluetoothAlwaysUsageDescription</key>
-              <string>Ket noi tay cam Flydigi Apex 5 va Direwolf.</string>
-              <key>NSBluetoothPeripheralUsageDescription</key>
-              <string>Duy tri cau noi cam ung chay nen.</string>
-              <key>NSPhotoLibraryUsageDescription</key>
-              <string>Tai anh chup man hinh Play Together VNG de can chinh nut.</string>
-              <key>UIBackgroundModes</key>
-              <array>
-                  <string>audio</string>
-                  <string>bluetooth-central</string>
-                  <string>bluetooth-peripheral</string>
-                  <string>external-accessory</string>
-              </array>
-              <key>GCSupportedGameControllers</key>
-              <array>
-                  <dict>
-                      <key>ProfileName</key>
-                      <string>ExtendedGamepad</string>
-                  </dict>
-              </array>
-              <key>GCSupportsControllerUserInteraction</key>
-              <true/>
-              <key>GCShouldMonitorBackgroundEvents</key>
-              <true/>
-              <key>LSRequiresIPhoneOS</key>
-              <true/>
-              <key>UIApplicationSceneManifest</key>
-              <dict>
-                  <key>UIApplicationSupportsMultipleScenes</key>
-                  <false/>
-              </dict>
-              <key>UILaunchScreen</key>
-              <dict/>
-              <key>UISupportedInterfaceOrientations</key>
-              <array>
-                  <string>UIInterfaceOrientationLandscapeLeft</string>
-                  <string>UIInterfaceOrientationLandscapeRight</string>
-              </array>
-          </dict>
-          </plist>
-          PLIST
-          fi
+          SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
+          echo "Using iOS SDK: $SDK_PATH"
 
-          if [ ! -f "project.yml" ]; then
-            cat << 'PROJ' > project.yml
-          name: FlydigiPlayTogetherMapper
-          options:
-            bundleIdPrefix: com.flydigi.ptmapper
-            deploymentTarget:
-              iOS: "15.0"
-          targets:
-            FlydigiPlayTogetherMapper:
-              type: application
-              platform: iOS
-              sources:
-                - path: Sources/App
-              info:
-                path: Sources/App/Info.plist
-              settings:
-                base:
-                  PRODUCT_BUNDLE_IDENTIFIER: com.flydigi.ptmapper.safe
-                  INFOPLIST_FILE: Sources/App/Info.plist
-                  CODE_SIGN_IDENTITY: ""
-                  CODE_SIGNING_REQUIRED: NO
-                  CODE_SIGNING_ALLOWED: NO
-                  ENABLE_BITCODE: NO
-              dependencies:
-                - sdk: GameController.framework
-                - sdk: CoreBluetooth.framework
-                - sdk: AVFoundation.framework
-                - sdk: AVKit.framework
-                - sdk: SwiftUI.framework
-                - sdk: UIKit.framework
-          PROJ
-          fi
+          xcrun -sdk iphoneos swiftc \
+            -parse-as-library \
+            -target arm64-apple-ios15.0 \
+            -sdk "$SDK_PATH" \
+            -O \
+            -framework SwiftUI \
+            -framework UIKit \
+            -framework Foundation \
+            -framework GameController \
+            -framework CoreBluetooth \
+            -framework AVFoundation \
+            -framework AVKit \
+            BuildSrc/App.swift \
+            -o Payload/FlydigiPlayTogetherMapper.app/FlydigiPlayTogetherMapper
 
-      - name: Generate Xcode Project with XcodeGen
-        env:
-          HOMEBREW_NO_AUTO_UPDATE: 1
-        run: |
-          if ! command -v xcodegen &> /dev/null; then
-            brew install xcodegen
-          fi
-          xcodegen generate
+          chmod +x Payload/FlydigiPlayTogetherMapper.app/FlydigiPlayTogetherMapper
+          codesign --force --sign - --timestamp=none Payload/FlydigiPlayTogetherMapper.app
 
-      - name: Build Unsigned Standalone Safe IPA
-        run: |
-          xcodebuild clean build             -project FlydigiPlayTogetherMapper.xcodeproj             -scheme FlydigiPlayTogetherMapper             -configuration Release             -sdk iphoneos             -derivedDataPath build_output             CODE_SIGN_IDENTITY=""             CODE_SIGNING_REQUIRED=NO             CODE_SIGNING_ALLOWED=NO             AD_HOC_CODE_SIGNING_ALLOWED=YES             DEVELOPMENT_TEAM=""
-
-          mkdir -p Payload
-          cp -r build_output/Build/Products/Release-iphoneos/FlydigiPlayTogetherMapper.app Payload/
           zip -r9 FlydigiPlayTogetherMapper.ipa Payload
+          ls -lh FlydigiPlayTogetherMapper.ipa
 
       - name: Upload Safe Standalone IPA for ESign
         uses: actions/upload-artifact@v4
