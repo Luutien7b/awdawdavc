@@ -1,0 +1,28 @@
+name: FlydigiPlayTogetherMapper
+options:
+  bundleIdPrefix: com.flydigi.ptmapper
+  deploymentTarget:
+    iOS: "15.0"
+targets:
+  FlydigiPlayTogetherMapper:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources/App
+    info:
+      path: Sources/App/Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.flydigi.ptmapper.safe
+        INFOPLIST_FILE: Sources/App/Info.plist
+        CODE_SIGN_IDENTITY: ""
+        CODE_SIGNING_REQUIRED: NO
+        CODE_SIGNING_ALLOWED: NO
+        ENABLE_BITCODE: NO
+    dependencies:
+      - sdk: GameController.framework
+      - sdk: CoreBluetooth.framework
+      - sdk: AVFoundation.framework
+      - sdk: AVKit.framework
+      - sdk: SwiftUI.framework
+      - sdk: UIKit.framework
